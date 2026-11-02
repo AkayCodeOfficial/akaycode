@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AkayCode – Kod yazan yapay zeka asistanı</title>
+<link rel="icon" id="fav" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#272727;--surface:#303030;--code:#1e1e1e;--line:#fff;--soft:rgba(255,255,255,.28);--text:#f2f2f2;--muted:#b5b5b5;--ok:#7ee2a8;--err:#ff8c8c;
+--sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Consolas,monospace}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;display:flex;flex-direction:column}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid #fff;outline-offset:3px}
+[hidden]{display:none!important}
+
+/* Üst menü */
+nav.top{display:flex;align-items:center;gap:14px;padding:12px 24px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;background:none;border:0;padding:0}
+.brand img{width:36px;height:36px}
+.brand b{font-size:21px;font-weight:600;letter-spacing:-.01em}
+.nl{background:none;border:0;padding:6px 10px;color:var(--muted);border-radius:6px}
+.nl:hover,.nl.on{color:#fff}
+.nl.on{border-bottom:1px solid #fff;border-radius:0}
+.grow{flex:1}
+.acct{display:flex;align-items:center;gap:10px}
+.who{font-family:var(--mono);font-size:14px;border:1px solid var(--soft);border-radius:6px;padding:4px 10px}
+.btn{font-weight:500;font-size:15px;padding:8px 16px;background:transparent;border:1px solid var(--line);border-radius:8px}
+.btn:hover{background:#fff;color:var(--bg)}
+.btn.solid{background:#fff;color:var(--bg);font-weight:600}
+.btn.solid:hover{background:var(--bg);color:#fff}
+.btn.wide{width:100%;margin-top:6px;padding:11px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.view{flex:1;min-height:0}
+#home{overflow-y:auto}
+.hero{max-width:760px;margin:0 auto;padding:48px 24px 44px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.hero img{width:min(220px,55vw);height:auto}
+.hero h1{font-size:clamp(42px,8vw,68px);line-height:1.1;letter-spacing:-.03em;font-weight:600;margin:18px 0 10px}
+.hero .tag{font-size:clamp(19px,3vw,24px);font-weight:500;margin:0 0 10px}
+.hero .can{color:var(--muted);max-width:54ch;margin:0 0 32px;font-size:17px}
+.btn.big{font-size:18px;padding:15px 38px;border-radius:10px}
+.demo{flex-basis:100%;text-align:center;font-size:13px;color:var(--muted);border-top:1px solid var(--soft);padding-top:8px;margin-top:2px}
+.feat{max-width:1000px;margin:0 auto;padding:16px 24px 48px;scroll-margin-top:8px}
+.feat h2{font-size:24px;font-weight:600;margin:0 0 6px}
+.feat>p{color:var(--muted);margin:0 0 22px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+.card{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;display:block}
+button.card:hover{background:#fff;color:var(--bg)}
+button.card:hover span{color:#444}
+.card h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.card span{color:var(--muted);font-size:14.5px;display:block}
+
+/* Sohbet */
+#chatView{display:flex;flex-direction:column}
+.stat{display:flex;align-items:center;gap:10px;padding:8px 24px;border-bottom:1px solid var(--soft);font-size:14px;color:var(--muted)}
+.dot{width:9px;height:9px;border-radius:50%;border:1.5px solid #fff;flex:none}
+.stat.ready{color:var(--text)}.stat.ready .dot{background:var(--ok);border-color:var(--ok)}
+.stat.error{color:var(--err)}.stat.error .dot{background:var(--err);border-color:var(--err)}
+.bar{width:120px;height:6px;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:#fff}
+.stat.ready .bar,.stat.error .bar{display:none}
+main{flex:1;overflow-y:auto;padding:24px}
+.wrap{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.empty{color:var(--muted);text-align:center;padding:40px 0}
+.line{display:flex;gap:12px;align-items:flex-start}
+.line.me{justify-content:flex-end}
+.av{width:40px;height:40px;flex:none;border:1px solid var(--line);border-radius:50%;background:var(--bg);display:grid;place-items:center}
+.av img{width:26px;height:26px;will-change:transform}
+.msg{max-width:min(88%,700px);padding:14px 18px;border:1px solid var(--line);border-radius:10px;overflow-wrap:anywhere}
+.msg.user{background:#fff;color:var(--bg);white-space:pre-wrap}
+.msg.ai{background:var(--surface)}
+.msg p{margin:0 0 .8em;white-space:pre-wrap}.msg p:last-child{margin:0}
+.msg code.i{font-family:var(--mono);font-size:.9em;background:var(--code);border:1px solid var(--soft);border-radius:4px;padding:1px 6px}
+.block{margin:10px 0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--code)}
+.block header{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;border-bottom:1px solid var(--soft);font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.copy{font-size:12.5px;background:none;border:1px solid var(--soft);border-radius:5px;padding:2px 10px}.copy:hover{border-color:#fff}
+.block pre{margin:0;padding:14px;overflow-x:auto;font-family:var(--mono);font-size:14px;line-height:1.55}
+.composer{border-top:1px solid var(--line);padding:16px 24px 12px}
+.crow{max-width:820px;margin:0 auto;display:flex;gap:12px;align-items:flex-end}
+textarea{flex:1;resize:none;max-height:180px;min-height:52px;font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:13px 14px}
+textarea:disabled{opacity:.55}
+.send{height:52px;padding:0 26px;font-weight:600;color:var(--bg);background:#fff;border:1px solid #fff;border-radius:8px}
+.send:hover:not(:disabled){background:var(--bg);color:#fff}
+.send:disabled{background:transparent;color:#8a8a8a;border-color:var(--soft);cursor:not-allowed}
+.hint{max-width:820px;margin:8px auto 0;font-size:12.5px;color:var(--muted)}
+footer{text-align:center;padding:10px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--soft)}
+
+/* Hesap penceresi */
+dialog.auth{width:min(440px,92vw);padding:0;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:12px}
+dialog.auth::backdrop{background:rgba(0,0,0,.65)}
+.ah{display:flex;justify-content:space-between;align-items:center;padding:16px 22px;border-bottom:1px solid var(--soft)}
+.ah h2{margin:0;font-size:20px;font-weight:600}
+.x{background:none;border:1px solid var(--soft);border-radius:6px;width:32px;height:32px;line-height:1}
+.x:hover{border-color:#fff}
+#authBody{padding:20px 22px 22px}
+#authBody label{display:block;font-size:14px;margin:14px 0 6px;font-weight:500}
+#authBody label:first-child{margin-top:0}
+#authBody input{width:100%;font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:11px 12px}
+#authBody input.code{font-family:var(--mono);font-size:26px;letter-spacing:.4em;text-align:center}
+.help{font-size:13px;color:var(--muted);margin:6px 0 0;min-height:1.2em}
+.help.good{color:var(--ok)}.help.bad{color:var(--err)}
+.err{color:var(--err);font-size:14px;margin:12px 0 4px;min-height:1.2em}
+.ok{color:var(--ok);font-size:14px;margin:0 0 14px}
+.note{border:1px dashed var(--line);border-radius:8px;padding:10px 12px;font-size:13.5px;margin:0 0 14px;color:var(--muted)}
+.note b{font-family:var(--mono);color:#fff;font-size:15px}
+.links{display:flex;justify-content:space-between;gap:10px;margin-top:14px}
+.lnk{background:none;border:0;padding:0;font-size:14px;color:var(--muted);text-decoration:underline;text-underline-offset:3px}.lnk:hover{color:#fff}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#fff;color:var(--bg);padding:10px 18px;border-radius:8px;font-weight:500;font-size:14.5px;z-index:50}
+@media(max-width:640px){nav.top,main,.composer,.stat{padding-left:14px;padding-right:14px}.hero{padding-top:28px}.msg{max-width:100%}.bar{width:70px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<nav class="top">
+  <button class="brand" id="brand" aria-label="Ana sayfa"><img class="logo" alt=""><b>AkayCode</b></button>
+  <button class="nl on" data-go="home">Ana sayfa</button>
+  <button class="nl" data-go="features">Özellikler</button>
+  <button class="nl" data-go="chat">Sohbet</button>
+  <div class="grow"></div>
+  <div class="acct" id="acct"></div>
+  <div class="demo">Bu hâlâ daha demo bir sürümdür, mesajlaşmalarınız kaybolabilir…</div>
+</nav>
+
+<section class="view" id="home">
+  <div class="hero">
+    <img class="logo" id="heroLogo" alt="AkayCode logosu">
+    <h1>AkayCode</h1>
+    <p class="tag">Her şey ücretsiz bir yapay zeka asistanı.</p>
+    <p class="can">Kod yazar, hataları bulur, kodu açıklar, metin yazıp özetler ve çeviri yapar. Üyelik olmadan da kullanabilirsin.</p>
+    <button class="btn solid big" data-go="chat">Şimdi konuşmaya başla!</button>
+  </div>
+  <div class="feat" id="features">
+    <h2>Neler yapabilir?</h2>
+    <p>Bir özelliğe tıkla, sohbet o örnekle açılsın.</p>
+    <div class="grid" id="grid"></div>
+  </div>
+  <footer>Yusuf Akay Şahin tarafından geliştirildi © 2026</footer>
+</section>
+
+<section class="view" id="chatView" hidden>
+  <div class="stat" id="stat" role="status"><span class="dot"></span><span id="statText">Hazırlanıyor…</span><span class="bar"><i id="barFill"></i></span></div>
+  <main id="chat"><div class="wrap" id="wrap"><div class="empty" id="empty">Bir soru sor ya da kod yapıştır. Özellik listesi için Özellikler menüsüne bak.</div></div></main>
+  <div class="composer">
+    <div class="crow"><textarea id="input" rows="1" placeholder="Model yüklenirken yazamazsın…" aria-label="Mesajın" disabled></textarea><button class="send" id="send" disabled>Gönder</button></div>
+    <div class="hint">Enter ile gönder, Shift+Enter ile yeni satır. Küçük bir model çalışıyor; önemli kodları mutlaka test et.</div>
+  </div>
+</section>
+
+<dialog class="auth" id="auth" aria-labelledby="authTitle">
+  <div class="ah"><h2 id="authTitle"></h2><button class="x" id="authX" aria-label="Kapat">×</button></div>
+  <div id="authBody"></div>
+</dialog>
+<div id="toast" hidden></div>
+
+<script type="module">
+const LOGO = "data:image/png;base64,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";
+const MODEL = "Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC";
+const BASE_SYSTEM = "Sen AkayCode'sun: öncelikle yazılım konusunda uzman, ama genel sorulara da yardım eden bir yapay zeka asistanısın. Kullanıcı hangi dilde yazarsa o dilde (genellikle Türkçe) cevap ver. Kodu her zaman ``` ile dil etiketli kod bloğu içinde ver, kısa ve doğru açıklamalar yap.";
+
+// E-posta ile kod göndermek için EmailJS bilgilerini buraya yaz (emailjs.com, ücretsiz plan var).
+// Şablonda {{to_email}}, {{to_name}}, {{code}} ve {{purpose}} alanlarını kullan.
+// Boş bırakırsan demo modu çalışır: kod e-postayla gitmez, ekranda gösterilir.
+const EMAILJS = { service: "", template: "", key: "" };
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+document.querySelectorAll("img.logo").forEach(i => i.src = LOGO);
+$("fav").href = LOGO;
+
+/* ---------- Dönen logo ---------- */
+function makeSpinner(el){
+  let a = 0, v = 0, run = false, raf = 0, last = 0;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function tick(t){
+    const dt = Math.min(.05, (t - last) / 1000 || 0); last = t;
+    v = run ? v + (330 - v) * Math.min(1, dt * 5) : v * Math.exp(-dt * 1.7); // durunca yavaşça sönümlenir
+    a = (a + v * dt) % 360;
+    el.style.transform = `rotate(${a}deg)`;
+    raf = (run || v > 3) ? requestAnimationFrame(tick) : 0;
+  }
+  return {
+    start(){ if (reduce) return; run = true; if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); } },
+    stop(){ run = false; }
+  };
+}
+const heroSpin = makeSpinner($("heroLogo"));
+heroSpin.start(); setTimeout(() => heroSpin.stop(), 1400);
+
+/* ---------- Hesap altyapısı (demo: tarayıcıda saklanır) ---------- */
+// Gerçek bir sitede bu nesnenin içini kendi sunucuna/Firebase/Supabase'e bağla; arayüz aynı kalır.
+const api = {
+  users(){ try { return JSON.parse(localStorage.getItem("akay_users") || "{}"); } catch { return {}; } },
+  save(u){ localStorage.setItem("akay_users", JSON.stringify(u)); },
+  async usernameFree(n){ await new Promise(r => setTimeout(r, 250)); return !Object.values(this.users()).some(u => u.username === n); },
+  async emailExists(e){ return !!this.users()[e]; },
+  async find(id){ const us = this.users(); return id.startsWith("@") ? Object.values(us).find(u => u.username === id) : us[id]; },
+  async create(u){ const us = this.users(); us[u.email] = u; this.save(us); },
+  async setPassword(email, salt, h){ const us = this.users(); if (us[email]) { us[email].salt = salt; us[email].hash = h; this.save(us); } }
+};
+async function hash(pw, salt){
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(salt + pw));
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+}
+const salt = () => [...crypto.getRandomValues(new Uint8Array(12))].map(x => x.toString(16).padStart(2, "0")).join("");
+const code6 = () => String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, "0");
+
+async function sendCode(email, name, code, purpose){
+  const c = EMAILJS;
+  if (!c.service || !c.template || !c.key) return { demo: true };
+  const r = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ service_id: c.service, template_id: c.template, user_id: c.key,
+      template_params: { to_email: email, to_name: name, code, purpose } })
+  });
+  if (!r.ok) throw new Error("mail");
+  return { demo: false };
+}
+
+let session = null; try { session = JSON.parse(localStorage.getItem("akay_session") || "null"); } catch {}
+let pending = null, fails = 0, lockUntil = 0;
+
+function toast(m){ const t = $("toast"); t.textContent = m; t.hidden = false; clearTimeout(toast.id); toast.id = setTimeout(() => t.hidden = true, 3200); }
+function renderAcct(){
+  const a = $("acct");
+  if (session) {
+    a.innerHTML = `<span class="who">${esc(session.username)}</span><button class="btn" id="out">Çıkış yap</button>`;
+    $("out").onclick = () => { session = null; localStorage.removeItem("akay_session"); renderAcct(); toast("Çıkış yaptın."); };
+  } else {
+    a.innerHTML = `<button class="btn" id="inB">Giriş yap</button><button class="btn solid" id="upB">Hesap oluştur</button>`;
+    $("inB").onclick = () => openAuth(vLogin); $("upB").onclick = () => openAuth(vSignup);
+  }
+}
+const dlg = $("auth");
+function openAuth(view){ if (!dlg.open) dlg.showModal(); view(); }
+$("authX").onclick = () => dlg.close();
+dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+
+const F = (id, label, type = "text", extra = "") => `<label for="${id}">${label}</label><input id="${id}" name="${id}" type="${type}" ${extra}>`;
+const err = m => $("err").textContent = m;
+function setBody(title, html){
+  $("authTitle").textContent = title; $("authBody").innerHTML = html;
+  $("authBody").querySelector("input")?.focus();
+}
+const passOk = p => p.length >= 8 && /[A-Za-zÇĞİÖŞÜçğıöşü]/.test(p) && /\d/.test(p);
+const emailOk = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+
+function vLogin(msg = ""){
+  setBody("Giriş yap", `${msg ? `<p class="ok">${msg}</p>` : ""}<form id="f" novalidate>
+    ${F("id", "E-posta veya kullanıcı adı", "text", 'autocomplete="username"')}
+    ${F("pw", "Şifre", "password", 'autocomplete="current-password"')}
+    <p class="err" id="err" role="alert"></p><button class="btn solid wide">Giriş yap</button></form>
+    <div class="links"><button class="lnk" id="a1">Şifremi unuttum</button><button class="lnk" id="a2">Hesap oluştur</button></div>`);
+  $("a1").onclick = () => vForgot(); $("a2").onclick = () => vSignup();
+  $("f").onsubmit = async e => {
+    e.preventDefault();
+    if (Date.now() < lockUntil) return err(`Çok fazla deneme. ${Math.ceil((lockUntil - Date.now()) / 1000)} sn bekle.`);
+    const id = $("id").value.trim().toLowerCase(), pw = $("pw").value;
+    const u = await api.find(id);
+    if (!u || await hash(pw, u.salt) !== u.hash) {
+      if (++fails >= 5) { lockUntil = Date.now() + 30000; fails = 0; }
+      return err("E-posta/kullanıcı adı veya şifre hatalı.");
+    }
+    fails = 0; session = { email: u.email, name: u.name, username: u.username };
+    localStorage.setItem("akay_session", JSON.stringify(session));
+    renderAcct(); dlg.close(); toast(`Hoş geldin, ${u.name.split(" ")[0]}!`);
+  };
+}
+
+function vSignup(){
+  setBody("Hesap oluştur", `<form id="f" novalidate>
+    ${F("name", "Ad soyad", "text", 'autocomplete="name"')}
+    ${F("un", "Kullanıcı adı", "text", 'autocomplete="username" placeholder="@kullaniciadi" maxlength="21"')}<p class="help" id="uh">@ ile başlar; 3–20 harf, rakam veya _ .</p>
+    ${F("em", "E-posta", "email", 'autocomplete="email"')}
+    ${F("pw", "Şifre", "password", 'autocomplete="new-password"')}<p class="help">En az 8 karakter, harf ve rakam içermeli.</p>
+    ${F("pw2", "Şifre tekrar", "password", 'autocomplete="new-password"')}
+    <p class="err" id="err" role="alert"></p><button class="btn solid wide">Onay kodu gönder</button></form>
+    <div class="links"><span></span><button class="lnk" id="a1">Zaten hesabım var</button></div>`);
+  $("a1").onclick = () => vLogin();
+  let free = false, timer;
+  const un = $("un"), uh = $("uh");
+  un.addEventListener("input", () => {
+    un.value = "@" + un.value.replace(/^@+/, "").replace(/[^a-zA-Z0-9_]/g, "").toLowerCase();
+    free = false; clearTimeout(timer);
+    if (!/^@[a-z0-9_]{3,20}$/.test(un.value)) { uh.className = "help"; uh.textContent = "@ ile başlar; 3–20 harf, rakam veya _ ."; return; }
+    uh.className = "help"; uh.textContent = "Kontrol ediliyor…";
+    timer = setTimeout(async () => {
+      const v = un.value; const ok = await api.usernameFree(v);
+      if (un.value !== v) return;
+      free = ok; uh.className = "help " + (ok ? "good" : "bad");
+      uh.textContent = ok ? `${v} müsait.` : `${v} alınmış, başka bir tane dene.`;
+    }, 350);
+  });
+  un.addEventListener("focus", () => { if (!un.value) un.value = "@"; });
+  $("f").onsubmit = async e => {
+    e.preventDefault();
+    const name = $("name").value.trim().replace(/\s+/g, " "), username = un.value, email = $("em").value.trim().toLowerCase(), pw = $("pw").value;
+    if (name.split(" ").length < 2 || name.length < 4) return err("Ad ve soyadını birlikte yaz.");
+    if (!/^@[a-z0-9_]{3,20}$/.test(username)) return err("Kullanıcı adı geçersiz.");
+    if (!free && !await api.usernameFree(username)) return err("Bu kullanıcı adı alınmış.");
+    if (!emailOk(email)) return err("Geçerli bir e-posta yaz.");
+    if (await api.emailExists(email)) return err("Bu e-posta ile zaten bir hesap var. Giriş yapmayı dene.");
+    if (!passOk(pw)) return err("Şifre en az 8 karakter olmalı ve harf ile rakam içermeli.");
+    if (pw !== $("pw2").value) return err("Şifreler aynı değil.");
+    const s = salt();
+    await startVerify({ type: "signup", email, name, user: { name, username, email, salt: s, hash: await hash(pw, s) } });
+  };
+}
+
+async function startVerify(p){
+  const btn = $("authBody").querySelector("button.wide"); if (btn) btn.disabled = true;
+  p.code = code6(); p.exp = Date.now() + 10 * 60000; p.tries = 0;
+  try { p.demo = (await sendCode(p.email, p.name || "", p.code, p.type === "signup" ? "Hesabını onayla" : "Şifreni sıfırla")).demo; }
+  catch { if (btn) btn.disabled = false; return err("Kod gönderilemedi. İnternetini ve e-posta ayarlarını kontrol et."); }
+  pending = p; vVerify();
+}
+function vVerify(){
+  const p = pending;
+  setBody("E-postanı onayla", `<p class="help" style="margin:0 0 12px">${esc(p.email)} adresine 6 haneli bir kod gönderdik. Kod 10 dakika geçerli.</p>
+    ${p.demo && p.known !== false ? `<div class="note">Demo modu: e-posta servisi bağlı değil, kod gönderilmedi. Kodun: <b>${p.code}</b></div>` : ""}
+    <form id="f" novalidate>${F("cd", "Onay kodu", "text", 'class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······"')}
+    <p class="err" id="err" role="alert"></p><button class="btn solid wide">Onayla</button></form>
+    <div class="links"><button class="lnk" id="a1">Kodu tekrar gönder</button><button class="lnk" id="a2">Geri dön</button></div>`);
+  $("cd").addEventListener("input", e => e.target.value = e.target.value.replace(/\D/g, ""));
+  $("a2").onclick = () => p.type === "signup" ? vSignup() : vForgot();
+  $("a1").onclick = async () => { await startVerify(p); if (pending) toast("Yeni kod gönderildi."); };
+  $("f").onsubmit = async e => {
+    e.preventDefault();
+    if (Date.now() > p.exp) return err("Kodun süresi doldu. Yeni kod iste.");
+    if (++p.tries > 5) { pending = null; return err("Çok fazla yanlış deneme. Yeni kod iste."); }
+    if (!/^\d{6}$/.test($("cd").value) || $("cd").value !== p.code || p.known === false) return err(`Kod hatalı. Kalan hak: ${5 - p.tries}`);
+    if (p.type === "signup") {
+      if (!await api.usernameFree(p.user.username) || await api.emailExists(p.email)) return err("Bu bilgiler az önce başkası tarafından alınmış. Baştan dene.");
+      await api.create(p.user);
+      session = { email: p.email, name: p.user.name, username: p.user.username };
+      localStorage.setItem("akay_session", JSON.stringify(session));
+      pending = null; renderAcct(); dlg.close(); toast("Hesabın oluşturuldu. Hoş geldin!");
+    } else vNewPass();
+  };
+}
+
+function vForgot(){
+  setBody("Şifremi unuttum", `<p class="help" style="margin:0 0 12px">Hesabındaki e-postayı yaz, sıfırlama kodu gönderelim.</p>
+    <form id="f" novalidate>${F("em", "E-posta", "email", 'autocomplete="email"')}<p class="err" id="err" role="alert"></p>
+    <button class="btn solid wide">Sıfırlama kodu gönder</button></form>
+    <div class="links"><span></span><button class="lnk" id="a1">Girişe dön</button></div>`);
+  $("a1").onclick = () => vLogin();
+  $("f").onsubmit = async e => {
+    e.preventDefault();
+    const email = $("em").value.trim().toLowerCase();
+    if (!emailOk(email)) return err("Geçerli bir e-posta yaz.");
+    const known = await api.emailExists(email); // kayıtlı değilse de aynı ekranı göster (hesap sızdırmamak için)
+    if (known) await startVerify({ type: "reset", email, name: api.users()[email].name });
+    else { pending = { type: "reset", email, code: code6(), exp: Date.now() + 600000, tries: 0, known: false }; vVerify(); }
+  };
+}
+function vNewPass(){
+  setBody("Yeni şifre belirle", `<form id="f" novalidate>
+    ${F("pw", "Yeni şifre", "password", 'autocomplete="new-password"')}<p class="help">En az 8 karakter, harf ve rakam içermeli.</p>
+    ${F("pw2", "Yeni şifre tekrar", "password", 'autocomplete="new-password"')}
+    <p class="err" id="err" role="alert"></p><button class="btn solid wide">Şifreyi kaydet</button></form>`);
+  $("f").onsubmit = async e => {
+    e.preventDefault();
+    const pw = $("pw").value;
+    if (!passOk(pw)) return err("Şifre en az 8 karakter olmalı ve harf ile rakam içermeli.");
+    if (pw !== $("pw2").value) return err("Şifreler aynı değil.");
+    const s = salt(); await api.setPassword(pending.email, s, await hash(pw, s));
+    pending = null; vLogin("Şifren güncellendi. Yeni şifrenle giriş yapabilirsin.");
+  };
+}
+
+/* ---------- Menü ve görünümler ---------- */
+const FEATURES = [
+  ["Kod yazma", "Python, JavaScript, HTML ve daha fazlasında istediğin programı yazar.", "Python ile bir dosyadaki kelimeleri sayan ve en sık geçen 10 kelimeyi yazdıran bir program yaz."],
+  ["Hata ayıklama", "Kodundaki hatayı bulur, nedenini anlatır ve düzeltir.", "Aşağıdaki kodda hata var, bulup düzelt ve nedenini açıkla:\n\n"],
+  ["Kod açıklama", "Yabancı bir kodu satır satır, sade bir dille açıklar.", "Aşağıdaki kodun ne yaptığını adım adım açıkla:\n\n"],
+  ["Metin yazma ve özetleme", "E-posta, tanıtım metni, rapor taslağı yazar; uzun metinleri kısaltır.", "Yeni açtığım kod yazma sitem için kısa ve güven veren bir tanıtım metni yaz."],
+  ["Çeviri", "Türkçe ile diğer diller arasında çeviri yapar.", "Şu metni İngilizceye çevir:\n\n"],
+  ["Cihazında çalışır", "Model tarayıcında çalışır; yazdıkların bir sunucuya gönderilmez.", ""]
+];
+$("grid").innerHTML = FEATURES.map(([t, d, p], i) => p
+  ? `<button class="card" data-f="${i}"><h3>${t}</h3><span>${d}</span></button>`
+  : `<div class="card"><h3>${t}</h3><span>${d}</span></div>`).join("");
+
+function setActive(k){ document.querySelectorAll(".nl").forEach(b => b.classList.toggle("on", b.dataset.go === k)); }
+function go(k){
+  if (k === "chat") { $("home").hidden = true; $("chatView").hidden = false; setActive("chat"); startEngine(); $("input").focus(); return; }
+  $("chatView").hidden = true; $("home").hidden = false;
+  if (k === "features") { setActive("features"); $("features").scrollIntoView({ behavior: "smooth" }); }
+  else { setActive("home"); $("home").scrollTop = 0; }
+}
+document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => go(b.dataset.go)));
+$("brand").onclick = () => go("home");
+$("grid").addEventListener("click", e => {
+  const c = e.target.closest("[data-f]"); if (!c) return;
+  go("chat"); $("input").value = FEATURES[c.dataset.f][2]; $("input").dispatchEvent(new Event("input"));
+});
+
+/* ---------- Sohbet ---------- */
+const input = $("input"), sendBtn = $("send"), wrap = $("wrap"), chat = $("chat");
+const history = [{ role: "system", content: BASE_SYSTEM }];
+let engine, engineState = "", busy = false;
+const scrollDown = () => chat.scrollTop = chat.scrollHeight;
+function setStat(kind, text){ $("stat").className = "stat " + kind; $("statText").textContent = text; }
+
+function render(text){
+  return text.split(/```/).map((part, i) => {
+    if (i % 2 === 1) {
+      const nl = part.indexOf("\n"), lang = nl > -1 ? part.slice(0, nl).trim() : "", code = nl > -1 ? part.slice(nl + 1) : part;
+      return `<div class="block"><header><span>${esc(lang || "kod")}</span><button class="copy" type="button">Kopyala</button></header><pre><code>${esc(code.replace(/\n$/, ""))}</code></pre></div>`;
+    }
+    return esc(part).split(/\n{2,}/).filter(p => p.trim()).map(p => `<p>${p.replace(/`([^`\n]+)`/g, '<code class="i">$1</code>')}</p>`).join("");
+  }).join("");
+}
+function addUser(text){
+  $("empty")?.remove();
+  const l = document.createElement("div"); l.className = "line me";
+  const m = document.createElement("div"); m.className = "msg user"; m.textContent = text;
+  l.appendChild(m); wrap.appendChild(l); scrollDown();
+}
+function addAI(text){
+  $("empty")?.remove();
+  const l = document.createElement("div"); l.className = "line";
+  l.innerHTML = `<div class="av"><img alt="" src="${LOGO}"></div><div class="msg ai"></div>`;
+  const box = l.querySelector(".msg"); box.innerHTML = render(text);
+  wrap.appendChild(l); scrollDown();
+  return { box, spin: makeSpinner(l.querySelector("img")) };
+}
+
+async function startEngine(){
+  if (engineState) return; engineState = "loading";
+  if (!("gpu" in navigator)) { setStat("error", "Tarayıcın WebGPU desteklemiyor. Güncel Chrome veya Edge kullan."); return; }
+  try {
+    setStat("", "Model yükleniyor: %0");
+    const webllm = await import("https://esm.run/@mlc-ai/web-llm");
+    engine = await webllm.CreateMLCEngine(MODEL, { initProgressCallback: r => {
+      const pct = Math.round((r.progress || 0) * 100);
+      $("barFill").style.width = pct + "%"; setStat("", "Model yükleniyor: %" + pct);
+    }});
+    engineState = "ready"; setStat("ready", "AkayCode hazır");
+    input.disabled = false; sendBtn.disabled = false; input.placeholder = "Bir kod, hata ya da soru yaz…"; input.focus();
+  } catch (e) { console.error(e); engineState = ""; setStat("error", "Model yüklenemedi. Sayfayı yenileyip tekrar dene."); }
+}
+
+async function send(){
+  const text = input.value.trim();
+  if (!text || busy || engineState !== "ready") return;
+  busy = true; sendBtn.disabled = true; input.value = ""; input.style.height = "auto";
+  addUser(text);
+  history[0].content = BASE_SYSTEM + (session ? ` Kullanıcının adı ${session.name.split(" ")[0]}.` : "");
+  history.push({ role: "user", content: text });
+  const { box, spin } = addAI("Düşünüyor…");
+  spin.start();
+  let answer = "";
+  try {
+    const stream = await engine.chat.completions.create({ messages: history, stream: true, temperature: 0.4 });
+    for await (const ch of stream) { answer += ch.choices[0]?.delta?.content || ""; box.innerHTML = render(answer) || "…"; scrollDown(); }
+    history.push({ role: "assistant", content: answer });
+  } catch (e) { console.error(e); history.pop(); box.textContent = "Cevap oluşturulamadı. Mesajını tekrar göndererek dene."; }
+  spin.stop();               // logo yavaşça yavaşlayıp durur
+  busy = false; sendBtn.disabled = false; input.focus();
+}
+sendBtn.onclick = send;
+input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
+input.addEventListener("input", () => { input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 180) + "px"; });
+wrap.addEventListener("click", e => {
+  const b = e.target.closest(".copy"); if (!b) return;
+  navigator.clipboard.writeText(b.closest(".block").querySelector("code").textContent)
+    .then(() => { b.textContent = "Kopyalandı"; setTimeout(() => b.textContent = "Kopyala", 1500); });
+});
+
+renderAcct();
+</script>
+</body>
+</html>
